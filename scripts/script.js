@@ -1,4 +1,7 @@
-const headerCityButton = document.querySelector('.header__city-button')
+const headerCityButton = document.querySelector('.header__city-button');
+const goodsTitle = document.querySelector('.goods__title');
+let navList = document.querySelector('.navigation__list');
+let hash = location.hash.substring(1);
 
 /*if (localStorage.getItem('lamoda-location')) {
   headerCityButton.textContent = localStorage.getItem('lamoda-location');
@@ -74,7 +77,7 @@ const cartModalClose = () => {
 // Запрос базы данных
 
 const getData = async () => {                // async пишется в разных местах в зависимости от вида ф-ии, обозначает асинхронность
-  const data = await fetch('db.json'); // ПОЛУЧАЕМ ДАННЫЕ ИЗ БАЗЫ ДАННЫХ
+  const data = await fetch('db.json');       // ПОЛУЧАЕМ ДАННЫЕ ИЗ БАЗЫ ДАННЫХ
                                              // await позволяет не выполняет выполнять присваивание до тех пор, пока fetch не вернёт ответ
   if (data.ok) {
     return data.json()
@@ -83,19 +86,23 @@ const getData = async () => {                // async пишется в разн
   }
 };
 
-const getGoods = (callback) => {             // ОБРАБАТЫВАЕМ ПОЛУЧЕННЫЕ ДАННЫЕ
-  getData()                  // Красиво
+const getGoods = (callback, value) => {      // ОБРАБАТЫВАЕМ ПОЛУЧЕННЫЕ ДАННЫЕ
+  getData()                                  // Красиво
         .then(data => {
-          callback(data);
+          if (value) {
+            callback(data.filter(item => item.category === value))
+          } else {
+            callback(data);
+          }
         })
         .catch(err => {
           console.error(err)
         });
 };
 
-getGoods((data) => {                 // ВЫЗЫВАЕМ / ПРОВЕРЯЕМ, ЧТО ВСЁ РАБОТАЕТ
+/*getGoods((data) => {                       // ВЫЗЫВАЕМ / ПРОВЕРЯЕМ, ЧТО ВСЁ РАБОТАЕТ
   console.warn(data)
-})
+})*/
 
 subheaderCart.addEventListener('click', cartModalOpen);
 
@@ -107,6 +114,70 @@ cartOverlay.addEventListener('click', event => {
   }
 });
 
+navList.addEventListener('click', event => {
+  const target = event.target;
+  goodsTitle.textContent = target.innerText;
+});
+
+try {
+  const goodsList = document.querySelector('.goods__list');
+
+  if (!goodsList) {
+    throw 'This is not a goods page!'
+  }
+
+  const createCard = ({ id, preview, cost, brand, name, sizes }) => { // Деструктуризация
+
+    const li = document.createElement('li');
+
+    li.classList.add('goods__item');
+
+    li.innerHTML = `
+      <article class="good">
+          <a class="good__link-img" href="card-good.html#${id}">
+              <img class="good__img" src="goods-image/${preview}" alt="">
+          </a>
+          <div class="good__description">
+              <p class="good__price">${cost} &#8381;</p>
+              <h3 class="good__title">${brand} <span class="good__title__grey">/ ${name}</span></h3>
+              ${sizes ?
+                   `<p class="good__sizes">Размеры (RUS): <span class="good__sizes-list">${sizes.join(' ')}</span></p>` :
+                   ''}
+              <a class="good__link" href="card-good.html#${id}">Подробнее</a>
+          </div>
+      </article>
+    `;
+
+    return li;
+  }
+
+  const renderGoodsList = data => {
+    goodsList.textContent = '';
+
+    /*for (let i = 0; i < data.length; i++) {
+      console.log('for: ', data[i]);
+    }
+
+    for (const item of data) {
+      console.log('for/of: ', item);
+    }*/
+
+    data.forEach(item => {
+      const card = createCard(item);
+      goodsList.append(card);
+    })
+  };
+
+  window.addEventListener('hashchange', () => {
+    hash = location.hash.substring(1);
+    getGoods(renderGoodsList, hash);
+  })
+
+  getGoods(renderGoodsList, hash);
+
+} catch(err) {
+    console.log(err)
+}
 
 /*getData().then(data => { // Некрасиво
   console.log(data);
