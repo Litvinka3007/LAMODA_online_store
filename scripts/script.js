@@ -62,6 +62,41 @@ const cartModalClose = () => {
   enableScroll();
 };
 
+/*cartOverlay.addEventListener('keypress', function(EO) {
+  EO = EO || window.event;
+  EO.preventDefault();
+
+  if (EO.keyCode === 27) {
+    cartModalClose();
+  }
+}, false);*/
+
+// Запрос базы данных
+
+const getData = async () => {                // async пишется в разных местах в зависимости от вида ф-ии, обозначает асинхронность
+  const data = await fetch('db.json'); // ПОЛУЧАЕМ ДАННЫЕ ИЗ БАЗЫ ДАННЫХ
+                                             // await позволяет не выполняет выполнять присваивание до тех пор, пока fetch не вернёт ответ
+  if (data.ok) {
+    return data.json()
+  } else {
+    throw new Error(`Данные не были получены. Ошибка ${data.status} ${data.statusText}`);
+  }
+};
+
+const getGoods = (callback) => {             // ОБРАБАТЫВАЕМ ПОЛУЧЕННЫЕ ДАННЫЕ
+  getData()                  // Красиво
+        .then(data => {
+          callback(data);
+        })
+        .catch(err => {
+          console.error(err)
+        });
+};
+
+getGoods((data) => {                 // ВЫЗЫВАЕМ / ПРОВЕРЯЕМ, ЧТО ВСЁ РАБОТАЕТ
+  console.warn(data)
+})
+
 subheaderCart.addEventListener('click', cartModalOpen);
 
 cartOverlay.addEventListener('click', event => {
@@ -72,11 +107,18 @@ cartOverlay.addEventListener('click', event => {
   }
 });
 
-/*cartOverlay.addEventListener('keypress', function(EO) {
-  EO = EO || window.event;
-  EO.preventDefault();
 
-  if (EO.keyCode === 27) {
-    cartModalClose();
-  }
-}, false);*/
+/*getData().then(data => { // Некрасиво
+  console.log(data);
+}, err => {
+  console.error(err)
+})*/
+
+
+/*async function foo() { // function declaration
+
+}
+
+const bar = async function() { // function expression
+
+}*/
